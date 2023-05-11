@@ -1,0 +1,15 @@
+[general]
+name=OrthogonalProjectionOfPointsAlongLine
+email=applications@tailwaterlimited.com
+author=Tailwater Limited
+qgisMinimumVersion=3.0
+description=The plugin allows users to take point data and orthogonally project the points to polylines to develop profiles. The purpose of this is to allow the three dimensional survey data to be imported into programs that require station elevation format.
+about=This plugin was developed to automate the task of projecting points to a polyline to enable survey data to be transformed into a format usable by programs that require station-elevation format. If the point does not orthogonally project the interior verticies are checked for distance and the points are projected to the verticies.
+version=version 1.0
+tracker=TBD
+repository=TBD
+
+category=Vector
+changelog=Initial release
+
+homepage=https://www.tailwaterlimited.com
