@@ -18,9 +18,21 @@ from console import console
 
         
 def calcDistance(x1, y1, x2, y2):
+    """
+    Pathgorean formula applied to two x-y point pairs.
+    """
     return math.sqrt((x2-x1)**2+(y2-y1)**2)
 
 def projectPoint(verticies, pointGeometry, maxOffset):
+    """
+    This algorithm takes a list of verticies, a point, and a maximum offset. The function itterates through all the segments defined by the verticies and finds the closest orthogonal location.
+    Interior verticies are also checked for distance and used if the distance, no matter the angle, is closer to the vertex. If the distance is less than the maxOffset the function returns the offset,
+    closest point on the geometry, and the segement that point is located.
+    
+    param: verticies is a list that contains the verticies from the line geometry
+    param: pointGeometry is a QgsPoint geometry for the point of interest
+    param: maxOffset is the maximum offset to return data for.
+    """
     n=len(verticies)
     minOffset = maxOffset + 1 #A number greater than the maximum distance
     xInt = 0 #picked this because it should be far from any real coordinates
