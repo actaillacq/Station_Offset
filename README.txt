@@ -13,6 +13,9 @@ Alterntively
 Copy the entire directory containing your new plugin to the QGIS plugin directory
 the default plugin directory is: %AppData%/Roaming/QGIS/QGIS3/profiles/default/python/plugins
 
+Website
+More information can be found at https://www.tailwaterlimited.com/apps.html
+
 License
                  GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

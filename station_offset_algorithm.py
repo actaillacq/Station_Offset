@@ -34,6 +34,7 @@ from qgis.PyQt.QtCore import QCoreApplication
 from qgis.core import (QgsProcessing,
                        QgsFeatureSink,
                        QgsProcessingAlgorithm,
+                       QgsProcessingFeedback,
                        QgsProcessingParameters,
                        QgsProcessingParameterField,
                        QgsProcessingParameterFileDestination,
@@ -147,7 +148,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFileDestination(
                 self.OUTPUT,
                 self.tr('Output Filename'),
-                createByDefault=True))
+                'CSV files (*.csv)'))
 
     def processAlgorithm(self, parameters, context, feedback):
         """
@@ -195,11 +196,9 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 continue
             i = 1
             for i in range(1,n):
-                StX = verticies[i-1].x()
-                StY = verticies[i-1].y()
-                EdX = verticies[i].x()
-                EdY = verticies[i].y()
-                distance = math.sqrt((EdX-StX)**2+(EdY-StY)**2)
+                St = verticies[i-1]
+                Ed = verticies[i]
+                distance = math.sqrt((Ed.x()-St.x())**2+(Ed.y()-St.y())**2)
                 vertex_m.append(vertex_m[i-1] + distance)
             pointFeatures = pointLayer.getFeatures()
             for pointFeature in pointFeatures:
@@ -208,21 +207,21 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 elevation = pointFeature.attribute(eleAttributeField)
                 #Calulate the distance
                 pointGeometry = pointFeature.geometry().asPoint()
-                offset, xInt, yInt, segment = projectPoint(verticies, pointGeometry, maxOffset)
+                offset, p, segment = projectPoint(verticies, pointGeometry, maxOffset, feedback)
                 
                 #point, vertex index before, vertex index after, sqrDistance
                 if offset is None:
                     outfile.write(lineName + ", " + str(pn) + ", " + "Out of Range" + ", " + "Out of Range" + ", " + str(elevation) + ", " + pointDescription + "\n")
                 else:
-                    dist = calcDistance(verticies[segment-1].x(), verticies[segment-1].y(),xInt, yInt)
-                    station = vertex_m[segment-1] + dist
+                    dist = calcDistance(verticies[segment],p)
+                    station = vertex_m[segment] + dist
                     outfile.write(lineName + ", " + str(pn) + ", " + str(station) + ", " + str(offset) + ", " + str(elevation) + ", " + pointDescription + "\n")
             verticies.clear()
             vertex_m.clear()
             n = 0
             
         outfile.close()
-        return {}
+        return {self.OUTPUT: outfileName}
 
     def name(self):
         """
@@ -246,7 +245,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
         Returns the name of the group this algorithm belongs to. This string
         should be localised.
         """
-        return self.tr(self.groupId())
+        return self.tr('Stream Tools')
 
     def groupId(self):
         """
@@ -256,7 +255,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
         contain lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'Tailwater'
+        return 'streamtools'
 
     def tr(self, string):
         return QCoreApplication.translate('Processing', string)
