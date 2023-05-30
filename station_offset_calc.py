@@ -3,9 +3,11 @@ from qgis.core import (QgsProcessingFeedback,
                        QgsPoint)
 
 def calcDistance(p1, p2):
+  #Simple distance calculator
     return math.sqrt((p2.x()-p1.x())**2+(p2.y()-p1.y())**2)
 
 def computeAngle(V):
+  """Computes the angle from a vector assuming if x is positive the value is between -pi/2 and pi/2 and if x is negative then add pi"""
     if(V[0] != 0):
         theta = math.atan(V[1]/V[0])#this gives us a value between -Pi/2 and Pi/2
     else:
@@ -20,6 +22,7 @@ def computeAngle(V):
     return theta
 
 def isInteriorPoint(point, p1, pmid, p3):
+  """Checks to see if the vector from the midpoint to the point falls between the other two vectors """
     magV1 = calcDistance(pmid, p1)
     magV2 = calcDistance(pmid, p3)
     magVp = calcDistance(pmid, point)
