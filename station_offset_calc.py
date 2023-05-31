@@ -51,6 +51,8 @@ def isInteriorPoint(point, p1, pmid, p3):
 
 
 def projectPoint(verticies, pointGeometry, maxOffset, feedback):
+  """This function itterates through the verticies in a polyline and finds the point nearest to the given point
+  """
     n=len(verticies)
     minOffset = maxOffset + 1 #A number greater than the maximum distance
     p = QgsPoint(0,0) #picked this because it should be far from any real coordinateses
