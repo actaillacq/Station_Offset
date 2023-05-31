@@ -51,16 +51,8 @@ import math
 
 class StationOffsetAlgorithm(QgsProcessingAlgorithm):
     """
-    This is an example algorithm that takes a vector layer and
-    creates a new identical one.
-
-    It is meant to be used as an example of how to create your own
-    algorithms and explain methods and variables used to do it. An
-    algorithm like this will be available in all elements, and there
-    is not need for additional work.
-
-    All Processing algorithms should extend the QgsProcessingAlgorithm
-    class.
+    This algorithm creates a csv file containing the station and offset
+    associated with points and polylines.
     """
 
     # Constants used to refer to parameters and outputs. They will be
@@ -153,6 +145,9 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):
         """
         Here is where the processing itself takes place.
+        The lines and points are loaded and csv file created to generate output.
+        
+        This algorithm makes no changes to any of the input features.
         """
 
         pointLayer = self.parameterAsVectorLayer(parameters,self.INPUTPOINTS,context)
