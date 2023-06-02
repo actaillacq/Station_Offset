@@ -12,7 +12,7 @@ email=applications@tailwaterlimited.com
 
 about=This plugin creates a .csv file containing the station and offset of all points in a point feature layer for each polyline in a polyline feature layer. This is usefull to convert three-dimensional survey data to two dimensional survey data (station/offset).
 
-tracker=https://www.tailwaterlimited.com
+tracker=https://github.com/actaillacq/Station_Offset/issues
 repository=https://github.com/actaillacq/Station_Offset
 # End of mandatory metadata
 
