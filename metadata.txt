@@ -25,7 +25,7 @@ hasProcessingProvider=yes
 # Tags are comma separated with spaces allowed
 tags=python
 
-homepage=https://www.tailwaterlimited.com/stationOffsetHelp.html
+homepage=https://www.tailwaterlimited.com/stationOffset.html
 category=Analysis
 icon=icon.png
 # experimental flag
