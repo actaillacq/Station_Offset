@@ -6,7 +6,7 @@
 name=Station Offset
 qgisMinimumVersion=3.0
 description=This plugin computes the station and offset of points along polylines and exports those values to csv for other applications
-version=1.0
+version=1.0.1
 author=Tailwater Limited
 email=applications@tailwaterlimited.com
 
@@ -20,7 +20,7 @@ repository=https://github.com/actaillacq/Station_Offset
 
 hasProcessingProvider=yes
 # Uncomment the following line and add your changelog:
-# changelog=
+changelog=Fixed file indent and github folder references
 
 # Tags are comma separated with spaces allowed
 tags=python

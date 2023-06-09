@@ -45,7 +45,7 @@ from qgis.core import (QgsProcessing,
                        QgsGeometry,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink)
-from station_offset.station_offset_calc import (calcDistance,
+from Station_Offset.station_offset_calc import (calcDistance,
                                                 projectPoint)
 import math
 
