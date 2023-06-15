@@ -71,8 +71,9 @@ def projectPoint(verticies, pointGeometry, maxOffset, feedback):
 			y0 = Ed.y()
 		else:
 			slope1 = (Ed.y()-St.y())/(Ed.x()-St.x())
-			slope2 = (Ed.x()-St.x())/(Ed.y()-St.y())
+			slope2 = -1.0/slope1
 			
+			#The first set is for the line segment
 			a1 = slope1
 			b1 = -1 #because of the simplification
 			c1 = -1*slope1*St.x()+St.y()
@@ -80,9 +81,15 @@ def projectPoint(verticies, pointGeometry, maxOffset, feedback):
 			a2 = slope2
 			b2 = -1 #because of the simplification
 			c2 = -1*slope2*pointGeometry.x()+pointGeometry.y()
-					
-			x0 = (b1*c2-b2*c1)/(a1*b2-a2*b1)
-			y0 = (c1*a2-c2*a1)/(a1*b2-a2*b1)
+
+			if(a1*b2 == a2*b1):
+				#this means the determinate is 0 a the solution is the point.
+				#since this is a simple point and line problem there is not way that there is not an intersection.
+				x0 = pointGeometry.x()
+				y0 = pointGeometry.y()
+			else:			
+				x0 = (b1*c2-b2*c1)/(a1*b2-a2*b1)
+				y0 = (c1*a2-c2*a1)/(a1*b2-a2*b1)
 		feedback.pushDebugInfo("x0 " +  str(x0) + " y0 " + str(y0))
 		minX = min(St.x(), Ed.x())
 		maxX = max(St.x(), Ed.x())
@@ -110,7 +117,6 @@ def projectPoint(verticies, pointGeometry, maxOffset, feedback):
 		if(offset >= minOffset):
 			continue
 		if(isInteriorPoint(pointGeometry,St, Ed, verticies[j+1])):
-			feedback.pushDebugInfo("Is interior point")
 			minOffset = offset
 			p.setX(Ed.x())
 			p.setY(Ed.y())
@@ -118,5 +124,5 @@ def projectPoint(verticies, pointGeometry, maxOffset, feedback):
 	if(minOffset >= maxOffset):
 		return(None, QgsPoint(0,0), 0)
 
-	feedback.pushDebugInfo("returning point")
+	feedback.pushDebugInfo("returning point " + str(minOffset) + " to segment " + str(p))
 	return(minOffset, p, segment)

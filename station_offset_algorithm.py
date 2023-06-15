@@ -79,13 +79,13 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.INPUTLINE,
-                self.tr('Alignment Lines'),
+                self.tr('Polylines (Alignment Lines)'),
                 types=[QgsProcessing.TypeVectorLine],
                 defaultValue=None))
 
         self.addParameter(QgsProcessingParameterField(
             self.INPUTLINENAMEFIELD,
-            self.tr('Attribute with Alignment Name'),
+            self.tr('Attribute with Line Name'),
             defaultValue=None,
             parentLayerParameterName=self.INPUTLINE,
             type=QgsProcessingParameterField.String,
@@ -193,7 +193,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
             for i in range(1,n):
                 St = verticies[i-1]
                 Ed = verticies[i]
-                distance = math.sqrt((Ed.x()-St.x())**2+(Ed.y()-St.y())**2)
+                distance = calcDistance(St, Ed)
                 vertex_m.append(vertex_m[i-1] + distance)
             pointFeatures = pointLayer.getFeatures()
             for pointFeature in pointFeatures:

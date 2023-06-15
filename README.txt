@@ -1,8 +1,13 @@
 Station Offset
-Station Offest is a QGIS utility for processing survey point data into station-offset-elevation format so that the data can be used in programs that were design to accept this format of data including reporting spreadsheets and riverMorph.
+Station Offest is a QGIS utility for processing survey point data into station-offset-elevation
+format so that the data can be used in programs that were design to accept this format of data
+including reporting spreadsheets and riverMorph.
 
 Project Description
-This QGIS utility takes point data from a feature (typically created from a .csv file exported from a data collector in common formats such as PNEZD) and polyline features for cross-sections, river centerlines, and thalwegs drawn by the user and ouputs a .csv file containing the line name, point number, station, offset, elevation, and point description.
+This QGIS utility takes point data from a feature (typically created from a .csv file exported
+from a data collector in common formats such as PNEZD) and polyline features for cross-sections,
+river centerlines, and thalwegs drawn by the user and ouputs a .csv file containing the line
+name, point number, station, offset, elevation, and point description.
 
 How to install
 In QGIS 3.0 or later goto the Plugins menu and select Manage and Install Plugins
