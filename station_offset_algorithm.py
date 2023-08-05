@@ -206,11 +206,11 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 
                 #point, vertex index before, vertex index after, sqrDistance
                 if offset is None:
-                    outfile.write(lineName + ", " + str(pn) + ", " + "Out of Range" + ", " + "Out of Range" + ", " + str(elevation) + ", " + pointDescription + "\n")
+                    outfile.write(str(lineName) + ", " + str(pn) + ", " + "Out of Range" + ", " + "Out of Range" + ", " + str(elevation) + ", " + str(pointDescription) + "\n")
                 else:
                     dist = calcDistance(verticies[segment],p)
                     station = vertex_m[segment] + dist
-                    outfile.write(lineName + ", " + str(pn) + ", " + str(station) + ", " + str(offset) + ", " + str(elevation) + ", " + pointDescription + "\n")
+                    outfile.write(str(lineName) + ", " + str(pn) + ", " + str(station) + ", " + str(offset) + ", " + str(elevation) + ", " + str(pointDescription) + "\n")
             verticies.clear()
             vertex_m.clear()
             n = 0
