@@ -200,9 +200,13 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 pointDescription = pointFeature.attribute(descriptionAttributeField)
                 pn = pointFeature.attribute(pnAttributeField)
                 elevation = pointFeature.attribute(eleAttributeField)
-                #Calulate the distance
+
+                #model_feedback.pushInfo("Projecting point number " + str(pn) + " onto " + str(lineName))
+                #Calculate the distance
                 pointGeometry = pointFeature.geometry().asPoint()
                 offset, p, segment = projectPoint(verticies, pointGeometry, maxOffset, feedback)
+
+                
                 
                 #point, vertex index before, vertex index after, sqrDistance
                 if offset is None:
