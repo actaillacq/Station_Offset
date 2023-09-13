@@ -28,7 +28,7 @@ homepage=https://www.tailwaterlimited.com/stationOffset.html
 category=Analysis
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
@@ -44,5 +44,11 @@ Category of the plugin: Raster, Vector, Database or Web
 # If the plugin can run on QGIS Server.
 server=False
 
-changelog= 1.0.1 Updated file structure to fix issue with folder structure after moving to github. Cleaned up code to use the distance calculator in all places. Added the option to identify lines by numbers. Adjusted label to identify polylines along with alignments to be more apparent to gis users. Added check for point falling on the line segment and fixed issue with the perpendicular slope (forgot minus sign). 1.0.3 Fixed error related to converting QVariant to QString on output. 1.0.4 Updated code to reduce the number of lines written to the log file because this was causing QGIS to hang.
+changelog= 1.0.1 Updated file structure to fix issue with folder structure after moving to github.
+ Cleaned up code to use the distance calculator in all places.
+ Added the option to identify lines by numbers. Adjusted label to identify polylines along with alignments to be more apparent to gis users.
+ Added check for point falling on the line segment and fixed issue with the perpendicular slope (forgot minus sign).
+ 1.0.3 Fixed error related to converting QVariant to QString on output.
+ 1.0.4 Updated code to reduce the number of lines written to the log file because this was causing QGIS to hang.
+ 1.0.5 Removed experimental flag added file import function.
 

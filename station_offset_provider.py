@@ -23,7 +23,7 @@
 """
 
 __author__ = 'Tailwater Limited'
-__date__ = '2023-08-04'
+__date__ = '2023-09-13'
 __copyright__ = '(C) 2023 by Tailwater Limited'
 
 # This will get replaced with a git SHA1 when you do a git archive
@@ -32,6 +32,7 @@ __revision__ = '$Format:%H$'
 
 from qgis.core import QgsProcessingProvider
 from .station_offset_algorithm import StationOffsetAlgorithm
+from .pnezd_algorithm import PNEZDAlgorithm
 
 
 class StationOffsetProvider(QgsProcessingProvider):
@@ -54,6 +55,7 @@ class StationOffsetProvider(QgsProcessingProvider):
         Loads all algorithms belonging to this provider.
         """
         self.addAlgorithm(StationOffsetAlgorithm())
+        self.addAlgorithm(PNEZDAlgorithm())
         # add additional algorithms here
         # self.addAlgorithm(MyOtherAlgorithm())
 

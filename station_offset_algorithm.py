@@ -23,7 +23,7 @@
 """
 
 __author__ = 'Tailwater Limited'
-__date__ = '2023-08-04'
+__date__ = '2023-05-17'
 __copyright__ = '(C) 2023 by Tailwater Limited'
 
 # This will get replaced with a git SHA1 when you do a git archive
@@ -200,13 +200,9 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 pointDescription = pointFeature.attribute(descriptionAttributeField)
                 pn = pointFeature.attribute(pnAttributeField)
                 elevation = pointFeature.attribute(eleAttributeField)
-
-                #model_feedback.pushInfo("Projecting point number " + str(pn) + " onto " + str(lineName))
-                #Calculate the distance
+                #Calulate the distance
                 pointGeometry = pointFeature.geometry().asPoint()
                 offset, p, segment = projectPoint(verticies, pointGeometry, maxOffset, feedback)
-
-                
                 
                 #point, vertex index before, vertex index after, sqrDistance
                 if offset is None:
