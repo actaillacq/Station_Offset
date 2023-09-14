@@ -35,5 +35,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     #
-    from .station_offset import StationOffsetPlugin
-    return StationOffsetPlugin()
+    from .streamTools import StreamToolsPlugin
+    return StreamToolsPlugin()

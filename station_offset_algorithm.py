@@ -102,7 +102,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterField(
                 self.INPUTPOINTDESCRIPTIONFIELD,
                 self.tr('Attribute with Point Description'),
-                defaultValue=None,
+                defaultValue='Description',
                 parentLayerParameterName=self.INPUTPOINTS,
                 type=QgsProcessingParameterField.String,
                 allowMultiple=False))
@@ -111,7 +111,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterField(
                 self.INPUTPOINTNUMBERFIELD,
                 self.tr('Attribute with Point Number'),
-                defaultValue=None,
+                defaultValue='PN',
                 parentLayerParameterName=self.INPUTPOINTS,
                 type=QgsProcessingParameterField.Numeric,
                 allowMultiple=False))
@@ -119,7 +119,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(QgsProcessingParameterField(
             self.INPUTPOINTELEVATIONFIELD,
             self.tr('Attribute with Elevation'),
-            defaultValue=None,
+            defaultValue='Elevation',
             parentLayerParameterName=self.INPUTPOINTS,
             type=QgsProcessingParameterField.Numeric,
             allowMultiple=False))
@@ -206,11 +206,13 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 
                 #point, vertex index before, vertex index after, sqrDistance
                 if offset is None:
-                    outfile.write(str(lineName) + ", " + str(pn) + ", " + "Out of Range" + ", " + "Out of Range" + ", " + str(elevation) + ", " + str(pointDescription) + "\n")
+                    outString = '{}, {}, {}, {}, {}, {}\n'.format(lineName, pn, 'Out of Range', 'Out of Range', elevation, pointDescription)
+                    outfile.write(outString)
                 else:
                     dist = calcDistance(verticies[segment],p)
                     station = vertex_m[segment] + dist
-                    outfile.write(str(lineName) + ", " + str(pn) + ", " + str(station) + ", " + str(offset) + ", " + str(elevation) + ", " + str(pointDescription) + "\n")
+                    outString = '{}, {}, {:.2f}, {:.2f}, {}, {}\n'.format(lineName, pn, station, offset, elevation, pointDescription)
+                    outfile.write(outString)
             verticies.clear()
             vertex_m.clear()
             n = 0

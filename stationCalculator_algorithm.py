@@ -38,17 +38,17 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingAlgorithm,
                        QgsProcessingFeedback,
                        QgsProcessingParameters,
-                       QgsProcessingParameterFile,
-                       QgsProcessingParameterCrs,
-                       QgsVectorLayer,
-                       QgsProcessingOutputVectorLayer,
+                       QgsProcessingParameterFeatureSource,
+                       QgsProcessingParameterField,
+                       QgsProcessingParameterString,
                        QgsProject,
-                       QgsCoordinateReferenceSystem
+                       QgsGeometry,
+                       edit
                        )
 
 import math
 
-class PNEZDAlgorithm(QgsProcessingAlgorithm):
+class StationCalculatorAlgorithm(QgsProcessingAlgorithm):
     """
     This algorithm imports a PNEZD file
     """
@@ -57,9 +57,10 @@ class PNEZDAlgorithm(QgsProcessingAlgorithm):
     # used when calling the algorithm from another algorithm, or when
     # calling from the QGIS console.
 
-    CRSINPUT = 'EPSG:4326'
-    INPUTFILE = 'INPUT_FILE'
-    OUTPUT = 'OUTPUT'
+    INPUTXS = 'XS_FILE'
+    INPUTCL = 'CL_FILE'
+    PRESTRING = ''
+    INPUTATTRIBUTFIELD = 'name'
     
     def initAlgorithm(self, config):
         """
@@ -67,24 +68,33 @@ class PNEZDAlgorithm(QgsProcessingAlgorithm):
         Easting, Elevation, Description format.
         """
 
+        self.addParameter(QgsProcessingParameterFeatureSource(
+            self.INPUTXS,
+            self.tr('Polylines (Cross-Section Alignment Lines)'),
+            types=[QgsProcessing.TypeVectorLine],
+            defaultValue=None))
+
         self.addParameter(
-            QgsProcessingParameterFile(
-                self.INPUTFILE,
-                self.tr('PNEZD File (csv, txt)'),
-                behavior = QgsProcessingParameterFile.File,
-                fileFilter='PNEZD (*.csv)',
+            QgsProcessingParameterFeatureSource(
+                self.INPUTCL,
+                self.tr('Polylines (Center Line Alignment)'),
+                types=[QgsProcessing.TypeVectorLine],
                 defaultValue=None))
 
-        self.addParameter(
-             QgsProcessingParameterCrs(
-                 self.CRSINPUT,
-                 self.tr('Coordinate System'),
-                 defaultValue='EPSG:6529'))
+        self.addParameter(QgsProcessingParameterField(
+            self.INPUTATTRIBUTFIELD,
+            self.tr('Attribute to put in stationing (text field)'),
+            defaultValue=None,
+            parentLayerParameterName=self.INPUTXS,
+            type=QgsProcessingParameterField.String,
+            allowMultiple=False))
 
-        self.addOutput(
-            QgsProcessingOutputVectorLayer(self.OUTPUT,
-            self.tr('Vector Layer'),
-            type = QgsProcessing.TypeVectorAnyGeometry))
+        self.addParameter(QgsProcessingParameterString(
+            self.PRESTRING,
+            self.tr('String to append before station ie XS '),
+            defaultValue=None,
+            multiLine=False,
+            optional=True))
 
     def processAlgorithm(self, parameters, context, feedback):
         """
@@ -94,35 +104,43 @@ class PNEZDAlgorithm(QgsProcessingAlgorithm):
         results = {}
         outputs = {}
 
-        crs = self.parameterAsCrs(parameters, self.CRSINPUT, context)
-        csvfileName = self.parameterAsString(parameters, self.INPUTFILE, context)
-  
+        nameAttributeFieldName = self.parameterAsFields(parameters, self.INPUTATTRIBUTFIELD,context)[0]
+        preString = self.parameterAsString(parameters, self.PRESTRING, context)
 
-        url = QUrl.fromLocalFile(csvfileName)
-        query = QUrlQuery() 
-        query.addQueryItem('crs', crs.authid())
-        query.addQueryItem('index', 'yes')
-        query.addQueryItem('type', 'csv')
-        query.addQueryItem('xField', 'field_3')
-        query.addQueryItem('yField', 'field_2')
-        query.addQueryItem('geomType','point')
-        query.addQueryItem('useHeader', 'no')
-        query.addQueryItem('detectTypes', 'yes')
-        query.addQueryItem('spatialIndex', 'yes')
-        url.setQuery(query)
+        xsLayer = self.parameterAsVectorLayer(parameters,self.INPUTXS,context)
+        clLayer = self.parameterAsVectorLayer(parameters, self.INPUTCL, context)
 
-        uri = url.toString()
-        layer = QgsVectorLayer(uri, "Survey Points",'delimitedtext')
-        layer.setFieldAlias(0, 'PN')
-        layer.setFieldAlias(1, 'Northing')
-        layer.setFieldAlias(2, 'Easting')
-        layer.setFieldAlias(3, 'Elevation')
-        layer.setFieldAlias(4, 'Description')
+        #For right now we will only get the first feature. After we could look to see if we don't intersect and try a different feature?
+        clFeature = next(clLayer.getFeatures())
+        clGeometry = clFeature.geometry()
 
-        QgsProject.instance().addMapLayer(layer)
+        xsLayer.startEditing()
 
-        return {self.OUTPUT : layer }
+        xsLayerFields = xsLayer.fields()
+        nameIdx = xsLayerFields.indexFromName(nameAttributeFieldName)
+        feedback.pushInfo("Field Index " + str(nameIdx))
 
+        for xsFeature in xsLayer.getFeatures():
+                
+            """Find Intersection get a point
+            """
+            xsGeometry = xsFeature.geometry()
+            intersectionPoint = xsGeometry.intersection(clGeometry)
+
+            if(intersectionPoint.isNull()):
+                xsLayer.changeAttributeValue(xsFeature.id(), nameIdx,"No Intersection")
+                feedback.pushInfo("No intersection found?")
+            else:
+                station = clGeometry.lineLocatePoint(intersectionPoint)
+                attributeValue = preString + '{:.0f}'.format(station)
+                xsLayer.changeAttributeValue(xsFeature.id(), nameIdx,attributeValue)
+                feedback.pushInfo("Attribute set " + attributeValue)
+            """Locate point along line if a point is found
+            """
+        xsLayer.commitChanges()
+        xsLayer.updateFields()
+
+        return {}
 
     def name(self):
         """
@@ -132,14 +150,14 @@ class PNEZDAlgorithm(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'importPNEZD'
+        return 'xsstationnamingtool'
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return 'Create Delimited Text Layer from PNEZD File'
+        return self.tr("Cross-Section Naming Tool")
 
     def group(self):
         """
@@ -162,4 +180,7 @@ class PNEZDAlgorithm(QgsProcessingAlgorithm):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return PNEZDAlgorithm()
+        return StationCalculatorAlgorithm()
+
+    def helpString(self):
+        return "This process returns a string value that includes the user supplied prefix along with the station from the centerline."

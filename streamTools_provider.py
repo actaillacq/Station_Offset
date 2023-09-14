@@ -33,9 +33,10 @@ __revision__ = '$Format:%H$'
 from qgis.core import QgsProcessingProvider
 from .station_offset_algorithm import StationOffsetAlgorithm
 from .pnezd_algorithm import PNEZDAlgorithm
+from .stationCalculator_algorithm import StationCalculatorAlgorithm
 
 
-class StationOffsetProvider(QgsProcessingProvider):
+class StreamToolsProvider(QgsProcessingProvider):
 
     def __init__(self):
         """
@@ -56,6 +57,7 @@ class StationOffsetProvider(QgsProcessingProvider):
         """
         self.addAlgorithm(StationOffsetAlgorithm())
         self.addAlgorithm(PNEZDAlgorithm())
+        self.addAlgorithm(StationCalculatorAlgorithm())
         # add additional algorithms here
         # self.addAlgorithm(MyOtherAlgorithm())
 
