@@ -44,9 +44,12 @@ from qgis.core import (QgsProcessing,
                        QgsPointXY,
                        QgsGeometry,
                        QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink)
+                       QgsProcessingParameterFeatureSink,
+                       Qgis,
+                       QgsProcessingOutputFile)
 from Station_Offset.station_offset_calc import (calcDistance,
                                                 projectPoint)
+
 import math
 
 class StationOffsetAlgorithm(QgsProcessingAlgorithm):
@@ -75,6 +78,16 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
         Followed by the desired offset to evaluate  default value is 99999
         and last is the output file name.
         """
+
+        # We add a feature sink in which to store our processed features (this
+        # usually takes the form of a newly created vector layer when the
+        # algorithm is run in QGIS).
+        
+        self.addParameter(
+            QgsProcessingParameterFileDestination(
+                self.OUTPUT,
+                self.tr('Output Filename'),
+                'CSV files (*.csv)'))
 
         self.addParameter(
             QgsProcessingParameterFeatureSource(
@@ -131,16 +144,6 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 defaultValue=99999,
                 type=QgsProcessingParameterNumber.Double,
                 minValue=0))
-        
-
-        # We add a feature sink in which to store our processed features (this
-        # usually takes the form of a newly created vector layer when the
-        # algorithm is run in QGIS).
-        self.addParameter(
-            QgsProcessingParameterFileDestination(
-                self.OUTPUT,
-                self.tr('Output Filename'),
-                'CSV files (*.csv)'))
 
     def processAlgorithm(self, parameters, context, feedback):
         """
@@ -163,6 +166,8 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
         maxOffset = self.parameterAsDouble(parameters, self.INPUTMAXOFFSET, context)
         
         outfileName = self.parameterAsString(parameters, self.OUTPUT, context)
+
+        results = {}
         
         #get the name for the output file.
         #console.show_console()
@@ -185,7 +190,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 verticies = lineGeom.asPolyline()
             vertex_m = [] #Create an empty list for this
             n = len(verticies)
-            print("vertex count " + str(n))
+            #print("vertex count " + str(n))
             vertex_m.append(0) #Add the first virtex
             if(n<2):
                 continue
@@ -213,12 +218,19 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                     station = vertex_m[segment] + dist
                     outString = '{}, {}, {:.2f}, {:.2f}, {}, {}\n'.format(lineName, pn, station, offset, elevation, pointDescription)
                     outfile.write(outString)
+                if feedback.isCanceled():
+                    break
             verticies.clear()
             vertex_m.clear()
             n = 0
             
         outfile.close()
-        return {self.OUTPUT: outfileName}
+
+        feedback.pushInfo('Success: The ouput file is <a href="' + outfileName + '">' + outfileName +'</A>')
+
+        #Put the results in the results variable
+        results['CSV'] = self.OUTPUT
+        return results
 
     def name(self):
         """
@@ -235,7 +247,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return self.tr(self.name())
+        return 'Station offset'
 
     def group(self):
         """

@@ -6,7 +6,7 @@
 name=Station Offset
 qgisMinimumVersion=3.0
 description=This plugin computes the station and offset of points along polylines and exports those values to csv for other applications
-version=1.0.4
+version=1.1.0
 author=Tailwater Limited
 email=applications@tailwaterlimited.com
 
@@ -50,6 +50,6 @@ changelog= 1.0.1 Updated file structure to fix issue with folder structure after
  Added check for point falling on the line segment and fixed issue with the perpendicular slope (forgot minus sign).
  1.0.3 Fixed error related to converting QVariant to QString on output.
  1.0.4 Updated code to reduce the number of lines written to the log file because this was causing QGIS to hang.
- 1.0.5 Removed experimental flag added file import function and cross section naming function that calculates stationing from a cl feature.
- Cleaned up files to use streamTools name more approrpiately.
+ 1.1.0 Removed experimental flag added file import function and cross section naming function that calculates stationing from a cl feature.
+ Cleaned up files to use streamTools name more appropriately.
 
