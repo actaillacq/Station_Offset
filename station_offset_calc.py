@@ -27,6 +27,7 @@ __date__ = '2023-08-25'
 __copyright__ = '(C) 2023 by Tailwater Limited'
 
 # This will get replaced with a git SHA1 when you do a git archive
+#Updated November 13, 2023 to fix issue with division by zero.
 
 import math
 from qgis.core import (QgsProcessingFeedback,
@@ -56,6 +57,9 @@ def isInteriorPoint(point, p1, pmid, p3):
 	magV1 = calcDistance(pmid, p1)
 	magV2 = calcDistance(pmid, p3)
 	magVp = calcDistance(pmid, point)
+	#If the magnitude of the vector between the point and the middle point is 0 the point was used as a vertex.
+	if(magVp == 0):
+		return True
 	#Calculate the unit vectors for the lines so the magnitude of each vector is 1
 	V1 = [(p1.x()-pmid.x())/magV1, (p1.y()-pmid.y())/magV2]
 	V2 = [(p3.x()-pmid.x())/magV2, (p3.y()-pmid.y())/magV2]
