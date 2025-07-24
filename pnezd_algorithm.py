@@ -23,7 +23,7 @@
 """
 
 __author__ = 'Tailwater Limited'
-__date__ = '2023-09-13'
+__date__ = '2023-05-17'
 __copyright__ = '(C) 2023 by Tailwater Limited'
 
 # This will get replaced with a git SHA1 when you do a git archive
@@ -31,98 +31,206 @@ __copyright__ = '(C) 2023 by Tailwater Limited'
 __revision__ = '$Format:%H$'
 
 from qgis.PyQt.QtCore import QCoreApplication
-from qgis.PyQt.QtCore import QUrl
-from qgis.PyQt.QtCore import QUrlQuery
-
 from qgis.core import (QgsProcessing,
+                       QgsFeatureSink,
                        QgsProcessingAlgorithm,
                        QgsProcessingFeedback,
                        QgsProcessingParameters,
-                       QgsProcessingParameterFile,
-                       QgsProcessingParameterCrs,
-                       QgsVectorLayer,
-                       QgsProcessingOutputVectorLayer,
-                       QgsProject,
-                       QgsCoordinateReferenceSystem
-                       )
+                       QgsProcessingParameterField,
+                       QgsProcessingParameterFileDestination,
+                       QgsProcessingParameterNumber,
+                       QgsGeometryUtils,
+                       QgsPoint,
+                       QgsPointXY,
+                       QgsGeometry,
+                       QgsProcessingParameterFeatureSource,
+                       QgsProcessingParameterFeatureSink,
+                       Qgis,
+                       QgsProcessingOutputFile)
+from Station_Offset.station_offset_calc import (calcDistance,
+                                                projectPoint)
 
 import math
 
-class PNEZDAlgorithm(QgsProcessingAlgorithm):
+class StationOffsetAlgorithm(QgsProcessingAlgorithm):
     """
-    This algorithm imports a PNEZD file
+    This algorithm creates a csv file containing the station and offset
+    associated with points and polylines.
     """
 
     # Constants used to refer to parameters and outputs. They will be
     # used when calling the algorithm from another algorithm, or when
     # calling from the QGIS console.
 
-    CRSINPUT = 'EPSG:4326'
-    INPUTFILE = 'INPUT_FILE'
     OUTPUT = 'OUTPUT'
+    INPUTLINE = 'INPUT_LINE'
+    INPUTLINENAMEFIELD = 'INPUT_LINENAMEFIELD'
+    INPUTPOINTS = 'INPUT_POINTS'
+    INPUTPOINTNUMBERFIELD = 'INPUT_POINTNUMBERFIELD'
+    INPUTPOINTDESCRIPTIONFIELD = 'INPUT_POINTDESCRIPTIONFIELD'
+    INPUTPOINTELEVATIONFIELD = 'INPUT_POINTELEVATIONFIELD'
+    INPUTMAXOFFSET = 'INPUT_MAXOFFSET'
     
     def initAlgorithm(self, config):
         """
-        There is 1 input file for this algorithm the PNEZD text file. This file is formatted as a comma separated file in Point Number, Northing,
-        Easting, Elevation, Description format.
+        There are 8 inputs created by the processing tools. The first is the Alignment (polyline feature) followed by the attribute field containing the alignment name.
+        Next is the point feature followed by attribute fields for description, point number, and elevation
+        Followed by the desired offset to evaluate  default value is 99999
+        and last is the output file name.
         """
 
+        # We add a feature sink in which to store our processed features (this
+        # usually takes the form of a newly created vector layer when the
+        # algorithm is run in QGIS).
+        
         self.addParameter(
-            QgsProcessingParameterFile(
-                self.INPUTFILE,
-                self.tr('PNEZD File (csv, txt)'),
-                behavior = QgsProcessingParameterFile.File,
-                fileFilter='PNEZD (*.csv)',
+            QgsProcessingParameterFileDestination(
+                self.OUTPUT,
+                self.tr('Output Filename'),
+                'CSV files (*.csv)'))
+
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                self.INPUTLINE,
+                self.tr('Polylines (Alignment Lines)'),
+                types=[QgsProcessing.SourceType.TypeVectorLine],
                 defaultValue=None))
 
-        self.addParameter(
-             QgsProcessingParameterCrs(
-                 self.CRSINPUT,
-                 self.tr('Coordinate System'),
-                 defaultValue='EPSG:6529'))
+        self.addParameter(QgsProcessingParameterField(
+            self.INPUTLINENAMEFIELD,
+            self.tr('Attribute with Line Name'),
+            defaultValue=None,
+            parentLayerParameterName=self.INPUTLINE,
+            type=QgsProcessingParameterField.DataType.String,
+            allowMultiple=False))
 
-        self.addOutput(
-            QgsProcessingOutputVectorLayer(self.OUTPUT,
-            self.tr('Vector Layer'),
-            type = QgsProcessing.TypeVectorAnyGeometry))
+        self.addParameter(
+            QgsProcessingParameterFeatureSource(
+                self.INPUTPOINTS,
+                self.tr('Survey Points'),
+                types=[QgsProcessing.SourceType.TypeVectorPoint],
+                defaultValue=None))
+        
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.INPUTPOINTDESCRIPTIONFIELD,
+                self.tr('Attribute with Point Description'),
+                defaultValue='Description',
+                parentLayerParameterName=self.INPUTPOINTS,
+                type=QgsProcessingParameterField.DataType.String,
+                allowMultiple=False))
+
+        self.addParameter(
+            QgsProcessingParameterField(
+                self.INPUTPOINTNUMBERFIELD,
+                self.tr('Attribute with Point Number'),
+                defaultValue='PN',
+                parentLayerParameterName=self.INPUTPOINTS,
+                type=QgsProcessingParameterField.DataType.Numeric,
+                allowMultiple=False))
+        
+        self.addParameter(QgsProcessingParameterField(
+            self.INPUTPOINTELEVATIONFIELD,
+            self.tr('Attribute with Elevation'),
+            defaultValue='Elevation',
+            parentLayerParameterName=self.INPUTPOINTS,
+            type=QgsProcessingParameterField.DataType.Numeric,
+            allowMultiple=False))
+        
+        self.addParameter(
+            QgsProcessingParameterNumber(
+                self.INPUTMAXOFFSET,
+                'Maximum offset',
+                defaultValue=99999,
+                type=QgsProcessingParameterNumber.Type.Double,
+                minValue=0))
 
     def processAlgorithm(self, parameters, context, feedback):
         """
         Here is where the processing itself takes place.
+        The lines and points are loaded and csv file created to generate output.
         
+        This algorithm makes no changes to any of the input features.
         """
+
+        pointLayer = self.parameterAsVectorLayer(parameters,self.INPUTPOINTS,context)
+        
+        lineLayer = self.parameterAsVectorLayer(parameters,self.INPUTLINE,context)
+        lineFeatures = lineLayer.getFeatures()
+        
+        nameAttributeField= self.parameterAsString(parameters, self.INPUTLINENAMEFIELD,context)
+        descriptionAttributeField= self.parameterAsString(parameters, self.INPUTPOINTDESCRIPTIONFIELD,context)
+        pnAttributeField = self.parameterAsString(parameters, self.INPUTPOINTNUMBERFIELD,context)
+        eleAttributeField = self.parameterAsString(parameters, self.INPUTPOINTELEVATIONFIELD, context)
+
+        maxOffset = self.parameterAsDouble(parameters, self.INPUTMAXOFFSET, context)
+        
+        outfileName = self.parameterAsString(parameters, self.OUTPUT, context)
+
         results = {}
-        outputs = {}
+        
+        #get the name for the output file.
+        #console.show_console()
+        try:
+            outfile = open(outfileName,"w")
+        except OSError:
+            print("Could not open outfile", outfile)
+            return {}
+        outfile.write("Alignment, Point Number, Station, Offset, Elevation, Description \n")
+        for lineFeature in lineFeatures:
+            #If cancel is pressed exit
+            if feedback.isCanceled():
+                break
+            lineGeom = QgsGeometry(lineFeature.geometry())
+            lineName = lineFeature.attribute(nameAttributeField)
+            if(lineGeom.isMultipart()):
+                verticies = lineGeom.asMultiPolyline()[0]
+                #model_feedback.pushInfo("Multipart geometry detected using first part in multipart geometry. Additional parts will be ignored")
+            else:
+                verticies = lineGeom.asPolyline()
+            vertex_m = [] #Create an empty list for this
+            n = len(verticies)
+            #print("vertex count " + str(n))
+            vertex_m.append(0) #Add the first virtex
+            if(n<2):
+                continue
+            i = 1
+            for i in range(1,n):
+                St = verticies[i-1]
+                Ed = verticies[i]
+                distance = calcDistance(St, Ed)
+                vertex_m.append(vertex_m[i-1] + distance)
+            pointFeatures = pointLayer.getFeatures()
+            for pointFeature in pointFeatures:
+                pointDescription = pointFeature.attribute(descriptionAttributeField)
+                pn = pointFeature.attribute(pnAttributeField)
+                elevation = pointFeature.attribute(eleAttributeField)
+                #Calulate the distance
+                pointGeometry = pointFeature.geometry().asPoint()
+                offset, p, segment = projectPoint(verticies, pointGeometry, maxOffset, feedback)
+                
+                #point, vertex index before, vertex index after, sqrDistance
+                if offset is None:
+                    outString = '{}, {}, {}, {}, {}, {}\n'.format(lineName, pn, 'Out of Range', 'Out of Range', elevation, pointDescription)
+                    outfile.write(outString)
+                else:
+                    dist = calcDistance(verticies[segment],p)
+                    station = vertex_m[segment] + dist
+                    outString = '{}, {}, {:.2f}, {:.2f}, {}, {}\n'.format(lineName, pn, station, offset, elevation, pointDescription)
+                    outfile.write(outString)
+                if feedback.isCanceled():
+                    break
+            verticies.clear()
+            vertex_m.clear()
+            n = 0
+            
+        outfile.close()
 
-        crs = self.parameterAsCrs(parameters, self.CRSINPUT, context)
-        csvfileName = self.parameterAsString(parameters, self.INPUTFILE, context)
-  
+        feedback.pushInfo('Success: The ouput file is <a href="' + outfileName + '">' + outfileName +'</A>')
 
-        url = QUrl.fromLocalFile(csvfileName)
-        query = QUrlQuery() 
-        query.addQueryItem('crs', crs.authid())
-        query.addQueryItem('index', 'yes')
-        query.addQueryItem('type', 'csv')
-        query.addQueryItem('xField', 'field_3')
-        query.addQueryItem('yField', 'field_2')
-        query.addQueryItem('geomType','point')
-        query.addQueryItem('useHeader', 'no')
-        query.addQueryItem('detectTypes', 'yes')
-        query.addQueryItem('spatialIndex', 'yes')
-        url.setQuery(query)
-
-        uri = url.toString()
-        layer = QgsVectorLayer(uri, "Survey Points",'delimitedtext')
-        layer.setFieldAlias(0, 'PN')
-        layer.setFieldAlias(1, 'Northing')
-        layer.setFieldAlias(2, 'Easting')
-        layer.setFieldAlias(3, 'Elevation')
-        layer.setFieldAlias(4, 'Description')
-
-        QgsProject.instance().addMapLayer(layer)
-
-        return {self.OUTPUT : layer }
-
+        #Put the results in the results variable
+        results['CSV'] = self.OUTPUT
+        return results
 
     def name(self):
         """
@@ -132,14 +240,14 @@ class PNEZDAlgorithm(QgsProcessingAlgorithm):
         lowercase alphanumeric characters only and no spaces or other
         formatting characters.
         """
-        return 'importPNEZD'
+        return 'stationOffset'
 
     def displayName(self):
         """
         Returns the translated algorithm name, which should be used for any
         user-visible display of the algorithm name.
         """
-        return 'Create Delimited Text Layer from PNEZD File'
+        return 'Station offset'
 
     def group(self):
         """
@@ -162,4 +270,4 @@ class PNEZDAlgorithm(QgsProcessingAlgorithm):
         return QCoreApplication.translate('Processing', string)
 
     def createInstance(self):
-        return PNEZDAlgorithm()
+        return StationOffsetAlgorithm()
