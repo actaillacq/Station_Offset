@@ -93,7 +93,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
             QgsProcessingParameterFeatureSource(
                 self.INPUTLINE,
                 self.tr('Polylines (Alignment Lines)'),
-                types=[QgsProcessing.TypeVectorLine],
+                types=[QgsProcessing.SourceType.TypeVectorLine],
                 defaultValue=None))
 
         self.addParameter(QgsProcessingParameterField(
@@ -101,14 +101,14 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
             self.tr('Attribute with Line Name'),
             defaultValue=None,
             parentLayerParameterName=self.INPUTLINE,
-            type=QgsProcessingParameterField.String,
+            type=QgsProcessingParameterField.DataType.String,
             allowMultiple=False))
 
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.INPUTPOINTS,
                 self.tr('Survey Points'),
-                types=[QgsProcessing.TypeVectorPoint],
+                types=[QgsProcessing.SourceType.TypeVectorPoint],
                 defaultValue=None))
         
         self.addParameter(
@@ -117,7 +117,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 self.tr('Attribute with Point Description'),
                 defaultValue='Description',
                 parentLayerParameterName=self.INPUTPOINTS,
-                type=QgsProcessingParameterField.String,
+                type=QgsProcessingParameterField.DataType.String,
                 allowMultiple=False))
 
         self.addParameter(
@@ -126,7 +126,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 self.tr('Attribute with Point Number'),
                 defaultValue='PN',
                 parentLayerParameterName=self.INPUTPOINTS,
-                type=QgsProcessingParameterField.Numeric,
+                type=QgsProcessingParameterField.DataType.Numeric,
                 allowMultiple=False))
         
         self.addParameter(QgsProcessingParameterField(
@@ -134,7 +134,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
             self.tr('Attribute with Elevation'),
             defaultValue='Elevation',
             parentLayerParameterName=self.INPUTPOINTS,
-            type=QgsProcessingParameterField.Numeric,
+            type=QgsProcessingParameterField.DataType.Numeric,
             allowMultiple=False))
         
         self.addParameter(
@@ -142,7 +142,7 @@ class StationOffsetAlgorithm(QgsProcessingAlgorithm):
                 self.INPUTMAXOFFSET,
                 'Maximum offset',
                 defaultValue=99999,
-                type=QgsProcessingParameterNumber.Double,
+                type=QgsProcessingParameterNumber.Type.Double,
                 minValue=0))
 
     def processAlgorithm(self, parameters, context, feedback):
