@@ -71,14 +71,14 @@ class StationCalculatorAlgorithm(QgsProcessingAlgorithm):
         self.addParameter(QgsProcessingParameterFeatureSource(
             self.INPUTXS,
             self.tr('Polylines (Cross-Section Alignment Lines)'),
-            types=[QgsProcessing.TypeVectorLine],
+            types=[QgsProcessing.SourceType.TypeVectorLine],
             defaultValue=None))
 
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.INPUTCL,
                 self.tr('Polylines (Center Line Alignment)'),
-                types=[QgsProcessing.TypeVectorLine],
+                types=[QgsProcessing.SourceType.TypeVectorLine],
                 defaultValue=None))
 
         self.addParameter(QgsProcessingParameterField(
@@ -86,7 +86,7 @@ class StationCalculatorAlgorithm(QgsProcessingAlgorithm):
             self.tr('Attribute to put in stationing (text field)'),
             defaultValue=None,
             parentLayerParameterName=self.INPUTXS,
-            type=QgsProcessingParameterField.String,
+            type=QgsProcessingParameterField.DataType.String,
             allowMultiple=False))
 
         self.addParameter(QgsProcessingParameterString(
