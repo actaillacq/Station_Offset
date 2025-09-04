@@ -31,7 +31,11 @@ __copyright__ = '(C) 2023 by Tailwater Limited'
 
 import math
 from qgis.core import (QgsProcessingFeedback,
-					   QgsPoint)
+					   QgsPoint,
+					   Qgis,
+					   QgsMessageLog)
+from qgis.utils import iface
+
 
 def calcDistance(p1, p2):
 	#Simple distance calculator
@@ -60,6 +64,12 @@ def isInteriorPoint(point, p1, pmid, p3):
 	#If the magnitude of the vector between the point and the middle point is 0 the point was used as a vertex.
 	if(magVp == 0):
 		return True
+	if(magV2 == 0 or magV1 == 0):
+		
+		QgsMessageLog.logMessage("Overlapping points in line feature", "Station Offset", level=Qgis.Critical)
+		iface.openMessageLog()
+		#Overlapping points skip this as no solution.
+		return False
 	#Calculate the unit vectors for the lines so the magnitude of each vector is 1
 	V1 = [(p1.x()-pmid.x())/magV1, (p1.y()-pmid.y())/magV2]
 	V2 = [(p3.x()-pmid.x())/magV2, (p3.y()-pmid.y())/magV2]

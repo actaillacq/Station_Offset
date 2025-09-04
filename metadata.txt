@@ -6,11 +6,11 @@
 name=Station Offset
 qgisMinimumVersion=3.0
 description=This plugin computes the station and offset of points along polylines and exports those values to csv for other applications
-version=1.1.2
+version=1.1.3
 author=Tailwater Limited
 email=applications@tailwaterlimited.com
 
-about=This plugin creates a .csv file containing the station and offset of all points in a point feature layer for each polyline in a polyline feature layer. This is useful to convert three-dimensional survey data to two dimensional survey data (station/offset).
+about=This plugin creates a .csv file containing the station and offset of all points in a point feature layer for each polyline in a polyline feature layer. This is usefull to convert three-dimensional survey data to two dimensional survey data (station/offset).
 
 tracker=https://github.com/actaillacq/Station_Offset/issues
 repository=https://github.com/actaillacq/Station_Offset
@@ -56,4 +56,5 @@ changelog= 1.0.1 Updated file structure to fix issue with folder structure after
  Cleaned up files to use streamTools name more appropriately.
  1.1.1 Fixed error when point was used as vertex
  1.1.2 Added support for QT6
+ 1.1.3 Fixed error with overlapping points.
 
