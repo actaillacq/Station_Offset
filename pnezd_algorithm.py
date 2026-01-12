@@ -73,7 +73,7 @@ class PNEZDAlgorithm(QgsProcessingAlgorithm):
                 self.INPUTFILE,
                 self.tr('PNEZD File (csv, txt)'),
                 behavior = QgsProcessingParameterFile.Behavior.File,
-                fileFilter='PNEZD (*.csv)',
+                fileFilter='PNEZD (*.csv *.txt)',
                 defaultValue=None))
 
         self.addParameter(
